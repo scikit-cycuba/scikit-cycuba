@@ -1,0 +1,8 @@
+.DS_STore
+config.h
+config.log
+config.status
+demo-c
+demo-fortran
+libcuba.a
+makefile

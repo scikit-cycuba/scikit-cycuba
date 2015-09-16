@@ -1,0 +1,6 @@
+.DS_Store
+build/
+*.c
+*~
+*.so
+cython_debug/
