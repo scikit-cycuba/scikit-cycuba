@@ -64,7 +64,7 @@ cdef:
     int* fail_c = &fail_value
     
 
-def _cuba(integrator, ndim, ncomp, integrand, userdata, nvec, epsrel, epsabs,
+def _cuba(integrator, ndim, ncomp, integrand, nvec, epsrel, epsabs,
           flags, seed, mineval, maxeval, statefile, spin, nstart, nincrease,
           nbatch, gridno, nnew, nmin, flatness, key1, key2, key3, maxpass,
           border, maxchisq, mindeviation, ngiven, ldxgiven, xgiven, nextra,
@@ -131,10 +131,11 @@ void (*peakfinder_t)(const int* ndim, const double b[],
             ndim_c, ncomp_c, _integrand_c, userdata_c, nvec_c, epsrel_c,
             epsabs_c, flags_c, mineval_c, maxeval_c, key_c, statefile_c,
             spin_c, nregions_c, neval_c, fail_c, integral_c, error_c, prob_c)
-        out.append(nregions_c[0])
     else:
         raise Exception("Bad value for integrator")
     
+    if integrator in ['suave', 'divonne', 'cuhre']:
+        out.append(nregions_c[0])
     integral = [integral_c[i] for i in range(ncomp)]
     error = [error_c[i] for i in range(ncomp)]
     prob = [prob_c[i] for i in range(ncomp)]
@@ -188,7 +189,6 @@ def test_run():
             2, # ndim
             1, # ncomp
             test_function, # integrand
-            0, # userdata
             1, # nvec
             1e-3, # epsrel
             1e-12, # epsabs
