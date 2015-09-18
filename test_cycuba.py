@@ -45,8 +45,8 @@ key = 0
 verbose = 2
 
 flag_kwargs = {'verbosity': 0, 'last_samples_only': False,
-                 'do_not_smooth': False, 'retain_state_file': False,
-                 'file_grid_only': False, 'level': 0}
+               'do_not_smooth': False, 'retain_state_file': False,
+               'file_grid_only': False, 'level': 0}
 
 common_kwargs = {'epsrel': epsrel, 'epsabs': epsabs, 'seed': seed,
                  'mineval': mineval, 'maxeval': maxeval,
@@ -108,6 +108,7 @@ cuhre_results = [
     [[0.523697555021], [0.025943077006], [0.000]]
     ]
 
+
 class TestIntegrand(object):
     def __init__(self, fun):
         self.fun = fun
@@ -119,26 +120,27 @@ class TestIntegrand(object):
         if self.fun == 0:
             out = sin(x) * cos(y) * exp(z)
         elif self.fun == 1:
-            out =  1 / ((x + y) ** 2 + .003) * cos(y) * exp(z)
+            out = 1 / ((x + y) ** 2 + .003) * cos(y) * exp(z)
         elif self.fun == 2:
-            out =  1 / (3.75 - cos(pi * x) - cos(pi * y) - cos(pi * z))
+            out = 1 / (3.75 - cos(pi * x) - cos(pi * y) - cos(pi * z))
         elif self.fun == 3:
-            out =  abs(self.rsq(x, y, z) - .125)
+            out = abs(self.rsq(x, y, z) - .125)
         elif self.fun == 4:
-            out =  exp(-self.rsq(x, y, z))
+            out = exp(-self.rsq(x, y, z))
         elif self.fun == 5:
-            out =  1 / (1 - x * y * z + 1e-10)
+            out = 1 / (1 - x * y * z + 1e-10)
         elif self.fun == 6:
-            out =  sqrt(abs(x - y - z))
+            out = sqrt(abs(x - y - z))
         elif self.fun == 7:
-            out =  exp(-x * y * z)
+            out = exp(-x * y * z)
         elif self.fun == 8:
-            out =  x ** 2 / (cos(x + y + z + 1) + 5)
+            out = x ** 2 / (cos(x + y + z + 1) + 5)
         elif self.fun == 9:
-            out = 1 / sqrt (x * y * z + 1e-5) if x > .5 else sqrt( x * y * z)
+            out = 1 / sqrt(x * y * z + 1e-5) if x > .5 else sqrt(x * y * z)
         else:
-            out =  1 if self.rsq(x, y, z) < 1 else 0
+            out = 1 if self.rsq(x, y, z) < 1 else 0
         return [out]
+
 
 def _vegas_test_runner(ind):
     kwargs = {}
@@ -152,14 +154,15 @@ def _vegas_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip( # Not comparing prob values.
+    for item in zip(  # Not comparing prob values.
             [integral, error], vegas_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
             err_msg="Problem #: " + str(ind) + item[2])
 
-@pytest.mark.parametrize('ind',[0, pytest.mark.xfail(1, raises=CyCubaWarning),
-                                2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+@pytest.mark.parametrize('ind', [0, pytest.mark.xfail(1, raises=CyCubaWarning),
+                                 2, 3, 4, 5, 6, 7, 8, 9, 10])
 def test_Vegas(ind):
     out = _vegas_test_runner(ind)
 
@@ -176,13 +179,14 @@ def _suave_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip( # Not comparing prob values.
+    for item in zip(  # Not comparing prob values.
             [integral, error], suave_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
             err_msg="Problem #: " + str(ind) + " " + item[2])
 
-@pytest.mark.parametrize('ind',range(11))
+
+@pytest.mark.parametrize('ind', range(11))
 def test_Suave(ind):
     out = _suave_test_runner(ind)
 
@@ -200,13 +204,14 @@ def _divonne_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip( # Not comparing prob values.
+    for item in zip(  # Not comparing prob values.
             [integral, error], divonne_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
             err_msg="Problem #: " + str(ind) + " " + item[2])
 
-@pytest.mark.parametrize('ind',range(11))
+
+@pytest.mark.parametrize('ind', range(11))
 def test_Divonne(ind):
     out = _divonne_test_runner(ind)
 
@@ -223,18 +228,13 @@ def _cuhre_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip( # Not comparing prob values.
+    for item in zip(  # Not comparing prob values.
             [integral, error], cuhre_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
             err_msg="Problem #: " + str(ind) + " " + item[2])
 
-@pytest.mark.parametrize('ind',range(11))
+
+@pytest.mark.parametrize('ind', range(11))
 def test_Cuhre(ind):
     out = _cuhre_test_runner(ind)
-
-
-if __name__ == "__main__":
-    for ind in range(11):
-        _vegas_test_runner(ind)
-                

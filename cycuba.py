@@ -27,20 +27,20 @@ class ScaledIntegrand(object):
         scaled_args = [range_[0] + x * diff for (range_, diff, x) in
                        zip(self.ranges, self.diffs, args)]
         return self.f(*scaled_args) * self.jacobian
-    
-    
+
+
 def integer_bit_flags(verbosity, last_samples_only, do_not_smooth_vs,
                       retain_state_file, file_grid_only_v, level):
     level_key = 3 if level > 4 and level < 24 else level
     flag_string = (
-        format(level_key, 'b')
-        + {True: '1', False: '0'}[file_grid_only_v]
-        + {True: '1', False: '0'}[retain_state_file]
-        + {True: '1', False: '0'}[do_not_smooth_vs]
-        + {True: '1', False: '0'}[last_samples_only]
-        + {0: '00', 1: '01', 2: '10', 3: '11'}[verbosity]
+        format(level_key, 'b') +
+        {True: '1', False: '0'}[file_grid_only_v] +
+        {True: '1', False: '0'}[retain_state_file] +
+        {True: '1', False: '0'}[do_not_smooth_vs] +
+        {True: '1', False: '0'}[last_samples_only] +
+        {0: '00', 1: '01', 2: '10', 3: '11'}[verbosity]
     )
-    return int(flag_string,base=2)
+    return int(flag_string, base=2)
 
 
 class CyCubaError(Exception):
@@ -66,14 +66,14 @@ class CyCubaIntegration(object):
         else:
             self.test_args = [0.5 for ind in range(self.ndim)]
         self.ncomp = len(self.integrand(*self.test_args))
-        self.nvec = 1 # Vectorized integrands not yet supported.
+        self.nvec = 1  # Vectorized integrands not yet supported.
         self.epsrel = epsrel
         self.epsabs = epsabs
         self.seed = seed
         self.mineval = mineval
         self.maxeval = maxeval
         self.statefile = statefile
-        self.spin = 0 # Spin variable is not yet supported.
+        self.spin = 0  # Spin variable is not yet supported.
         self.empty_vegas_args = (0, 0, 0, 0)
         self.empty_suave_args = (0, 0, 0)
         self.empty_divonne_args = (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -86,15 +86,14 @@ class CyCubaIntegration(object):
 
     def _vegas(self, flags, *args):
         vegas_args = (self.base_args(flags) +
-                      args + 
-                      self.empty_suave_args + 
+                      args +
+                      self.empty_suave_args +
                       self.empty_divonne_args +
                       self.empty_cuhre_args)
         out = _cuba('vegas', *vegas_args)
         [self.neval, self.fail, self.integral, self.error, self.prob] = out
         self._check_fail()
         return [self.integral, self.error, self.prob]
-        
 
     def _suave(self, flags, *args):
         suave_args = (self.base_args(flags) +
@@ -114,7 +113,7 @@ class CyCubaIntegration(object):
                         self.empty_suave_args +
                         args +
                         self.empty_cuhre_args)
-        out =  _cuba('divonne', *divonne_args)
+        out = _cuba('divonne', *divonne_args)
         [self.neval, self.nregions, self.fail,
          self.integral, self.error, self.prob] = out
         self._check_fail()
@@ -123,7 +122,7 @@ class CyCubaIntegration(object):
     def _cuhre(self, flags, *args):
         cuhre_args = (self.base_args(flags) +
                       self.empty_vegas_args +
-                      self.empty_suave_args + 
+                      self.empty_suave_args +
                       self.empty_divonne_args +
                       args)
         out = _cuba('cuhre', *cuhre_args)
@@ -140,12 +139,11 @@ class CyCubaIntegration(object):
                 warn("Accuracy goal not achieved!", CyCubaWarning)
             else:
                 warn(
-                    "Accuracy goal not achieved! " + linesep + 
+                    "Accuracy goal not achieved! " + linesep +
                     "Approximately "+str(fail)+" additional points" +
                     " required to reach desired accuracy.", CyCubaWarning)
-    
 
-                     
+
 def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
           gridno=0, verbosity=ibf_v, last_samples_only=ibf_lso,
           do_not_smooth=ibf_dns, retain_state_file=ibf_rsf,
@@ -158,7 +156,7 @@ def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
 
 def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
           verbosity=ibf_v, last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
-          retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level = ibf_l,
+          retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level=ibf_l,
           **kwargs):
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
@@ -175,10 +173,9 @@ def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
-    return cycuba_integration._divonne(flags, key1, key2, key3, maxpass, border,
-                                     maxchisq, mindeviation, ngiven, ldxgiven,
-                                     xgiven, nextra, peakfinder)
-    
+    return cycuba_integration._divonne(
+        flags, key1, key2, key3, maxpass, border, maxchisq, mindeviation,
+        ngiven, ldxgiven, xgiven, nextra, peakfinder)
 
 
 def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
@@ -189,17 +186,3 @@ def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
     return cycuba_integration._cuhre(flags, key)
-
-
-#def test_Divonne():
-#    divonne_args = (47, 1, 1, 5, 0, 10, .25, 0, ndim, 0)
-    
-
-
-if __name__ == "__main__":
-    test_function = lambda x, y: [1 if x**2 + y**2 < 1 else 0]
-    out = Vegas(test_function, verbosity=0)
-    print('Vegas results: ', out)
-    out = Cuhre(test_function, verbosity=0)
-    print('Cuhre results: ', out)
-    

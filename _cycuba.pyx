@@ -1,24 +1,14 @@
 # file: cycuba.pyx
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
-cimport ccuba
 from ccuba cimport cubareal
-
-#cdef int _integrand_c(int ndim, int ncomp, integrand_py):
-#    return ccuba.integrand_t integrand(integrand_py)
-
-#def void _vegas(ndim, ncomp, ):
-#
-#    ccuba.Vegas(ndim, ncomp, integrand, userdata, nvec, epsrel, epsabs,
-#                flags, seed, mineval, maxeval, nstart, nincrease, nbatch,
-#                gridno, statefile, spin, neval, fail, integral, error,
-#                prob)
+cimport ccuba
 
 cdef:
     # Common arguments
     int ndim_c
     int ncomp_c
-    void* userdata_c
+    void *userdata_c
     int nvec_c
     ccuba.cubareal epsrel_c
     ccuba.cubareal epsabs_c
@@ -26,8 +16,8 @@ cdef:
     int seed_c
     int mineval_c
     int maxeval_c
-    char* statefile_c
-    void* spin_c
+    char *statefile_c
+    void *spin_c
 
     # Vegas-specific arguments
     int nstart_c
@@ -52,22 +42,21 @@ cdef:
     int ldxgiven_c
     int nextra_c
 
-    #Cuhre-specific arguments
+    # Cuhre-specific arguments
     int key_c
 
-    #Common returns
-    int nregions_value = 0 # Not used by Vegas
-    int* nregions_c = &nregions_value
+    # Common returns
+    int nregions_value = 0  # Not used by Vegas
+    int *nregions_c = &nregions_value
     int neval_value = 0
-    int* neval_c = &neval_value
+    int *neval_c = &neval_value
     int fail_value = 0
-    int* fail_c = &fail_value
+    int *fail_c = &fail_value
 
     # Peakfinder declarations, required for Divonne
     int peakfinder_n_value
     int *peakfinder_n_c
-    void *peakfinder_c
-    
+
 
 def _cuba(integrator, ndim, ncomp, integrand, nvec, epsrel, epsabs,
           flags, seed, mineval, maxeval, statefile, spin, nstart, nincrease,
@@ -92,7 +81,7 @@ void (*peakfinder_t)(const int* ndim, const double b[],
                      int* n, double x[], void* userdata)
 
 """
-    # Common arguments    
+    # Common arguments
     ndim_c = <int> ndim
     ncomp_c = <int> ncomp
     userdata_c = <void*>integrand
@@ -103,28 +92,32 @@ void (*peakfinder_t)(const int* ndim, const double b[],
     seed_c = <int> seed
     mineval_c = <int> mineval
     maxeval_c = <int> maxeval
-    statefile_c = NULL #&statefile.encode('utf-8')
-    spin_c = NULL # Not sure what to do here.
-        
-    
+    if statefile:
+        raise Exception("Statefile recording not yet supported!")
+    statefile_c = NULL  # &statefile.encode('utf-8')
+    if spin:
+        raise Exception("Spin specification not yet supported!")
+    spin_c = NULL  # Not sure what to do here.
+
     # Common returns
     integral_c = <ccuba.cubareal*> PyMem_Malloc(ncomp * sizeof(ccuba.cubareal))
     error_c = <ccuba.cubareal*> PyMem_Malloc(ncomp * sizeof(ccuba.cubareal))
     prob_c = <ccuba.cubareal*> PyMem_Malloc(ncomp * sizeof(ccuba.cubareal))
-    
+
     out = []
-    
+
     if integrator == 'vegas':
         nstart_c = <int> nstart
         nincrease_c = <int> nincrease
         nbatch_c = <int> nbatch
         gridno_c = <int> gridno
-    
+
         ccuba.Vegas(
             ndim_c, ncomp_c, _integrand_c, userdata_c, nvec_c, epsrel_c,
             epsabs_c, flags_c, seed_c, mineval_c, maxeval_c, nstart_c,
             nincrease_c, nbatch_c, gridno_c, statefile_c, spin_c, neval_c,
             fail_c, integral_c, error_c, prob_c)
+
     elif integrator == 'suave':
         nnew_c = <int> nnew
         nmin_c = <int> nmin
@@ -135,7 +128,7 @@ void (*peakfinder_t)(const int* ndim, const double b[],
             epsabs_c, flags_c, seed_c, mineval_c, maxeval_c, nnew_c, nmin_c,
             flatness_c, statefile_c, spin_c, nregions_c, neval_c, fail_c,
             integral_c, error_c, prob_c)
-#        raise Exception("Suave integration not yet implemented!")
+
     elif integrator == 'divonne':
         key1_c = <int> key1
         key2_c = <int> key2
@@ -151,14 +144,17 @@ void (*peakfinder_t)(const int* ndim, const double b[],
         for inda in range(ngiven):
             for indb in range(ldxgiven):
                 xgiven_c[indb + ldxgiven * inda] = xgiven[indb][inda]
-        nextra_c = <int> nextra
         if peakfinder:
-            raise CyCubaError(
-                "The use of peakfinder functions in CyCuba's Divonne integrator has not been fully implemented. If you really must use peakfinder, then congratulations, you've just become a CyCuba developer!"
+            raise Exception(
+                "The use of peakfinder functions in CyCuba's Divonne " +
+                "integrator has not been fully implemented. If you really " +
+                "must use peakfinder, then please contact the developers " +
+                "in order to help them set up test problems and APIs.")
+            nextra_c = <int> nextra
             _peakfinder_c = _peakfinder_c_true
-#        else:
-#            _peakfinder_c = _peakfinder_empty_c
-            
+        else:
+            nextra_c = <int> 0
+
         peakfinder_b_c = <double*> PyMem_Malloc(ndim * 2 * sizeof(double))
 
         ccuba.Divonne(
@@ -179,7 +175,7 @@ void (*peakfinder_t)(const int* ndim, const double b[],
             spin_c, nregions_c, neval_c, fail_c, integral_c, error_c, prob_c)
     else:
         raise Exception("Bad value for integrator")
-    
+
     if integrator in ['suave', 'divonne', 'cuhre']:
         out.append(nregions_c[0])
     integral = [integral_c[i] for i in range(ncomp)]
@@ -188,7 +184,7 @@ void (*peakfinder_t)(const int* ndim, const double b[],
     PyMem_Free(integral_c)
     PyMem_Free(error_c)
     PyMem_Free(prob_c)
-    
+
     out.extend([neval_c[0], fail_c[0], integral, error, prob])
     return out
 
@@ -202,17 +198,17 @@ cdef int _integrand_c(const int *ndim, const ccuba.cubareal x[],
         for ind in range(ncomp[0]):
             f[ind] = <ccuba.cubareal> <double> out_py[ind]
     except:
-        return <int>-999
+        return <int> -999
     return 0
 
-cdef void _peakfinder_c_true(const int *ndim, const double b[],
+cdef void _peakfinder_c(const int *ndim, const double b[],
                         int *n, double x[], void *userdata):
     obj = <object> userdata
     func = obj.peakfinder
     b_py = [[<double> b[ind * ndim[0]], <double> b[ind * ndim[0] + 1]]
             for ind in ndim[0]]
     n_py = n[0]
-    out_py_n, out_py_x = func(b_py,n_py)
+    out_py_n, out_py_x = func(b_py, n_py)
     for inda in range(out_py_n):
         for indb in range(ndim[0]):
             x[inda * ndim[0] + indb] = <double> out_py_x[inda][indb]
