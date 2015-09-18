@@ -11,5 +11,5 @@ setup(name='cycuba', version='0.0.1',
       ext_modules=cythonize(
           [Extension('_cycuba', ['_cycuba.pyx'], library_dirs=['./Cuba-4.2/'],
                      libraries=['cuba'], include_dirs=['./Cuba-4.2/'])],
-          gdb_debug=True)
+          gdb_debug=False)
       )
