@@ -1,5 +1,6 @@
 # file: cycuba.pyx
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
+
 cimport ccuba
 from ccuba cimport cubareal
 
@@ -49,7 +50,6 @@ cdef:
     double mindeviation_c
     int ngiven_c
     int ldxgiven_c
-    double xgiven_c
     int nextra_c
 
     #Cuhre-specific arguments
@@ -62,6 +62,11 @@ cdef:
     int* neval_c = &neval_value
     int fail_value = 0
     int* fail_c = &fail_value
+
+    # Peakfinder declarations, required for Divonne
+    int peakfinder_n_value
+    int *peakfinder_n_c
+    void *peakfinder_c
     
 
 def _cuba(integrator, ndim, ncomp, integrand, nvec, epsrel, epsabs,
@@ -106,7 +111,7 @@ void (*peakfinder_t)(const int* ndim, const double b[],
     integral_c = <ccuba.cubareal*> PyMem_Malloc(ncomp * sizeof(ccuba.cubareal))
     error_c = <ccuba.cubareal*> PyMem_Malloc(ncomp * sizeof(ccuba.cubareal))
     prob_c = <ccuba.cubareal*> PyMem_Malloc(ncomp * sizeof(ccuba.cubareal))
-
+    
     out = []
     
     if integrator == 'vegas':
@@ -121,9 +126,50 @@ void (*peakfinder_t)(const int* ndim, const double b[],
             nincrease_c, nbatch_c, gridno_c, statefile_c, spin_c, neval_c,
             fail_c, integral_c, error_c, prob_c)
     elif integrator == 'suave':
-        raise Exception("Suave integration not yet implemented!")
+        nnew_c = <int> nnew
+        nmin_c = <int> nmin
+        flatness_c = <double> flatness
+
+        ccuba.Suave(
+            ndim_c, ncomp_c, _integrand_c, userdata_c, nvec_c, epsrel_c,
+            epsabs_c, flags_c, seed_c, mineval_c, maxeval_c, nnew_c, nmin_c,
+            flatness_c, statefile_c, spin_c, nregions_c, neval_c, fail_c,
+            integral_c, error_c, prob_c)
+#        raise Exception("Suave integration not yet implemented!")
     elif integrator == 'divonne':
-        raise Exception("Divonne integration not yet implemented!")
+        key1_c = <int> key1
+        key2_c = <int> key2
+        key3_c = <int> key3
+        maxpass_c = <int> maxpass
+        border_c = <double> border
+        maxchisq_c = <double> maxchisq
+        mindeviation_c = <double> mindeviation
+        ngiven_c = <int> ngiven
+        ldxgiven_c = <int> ldxgiven
+        xgiven_c = <double*> PyMem_Malloc(
+            ldxgiven_c * ngiven_c * sizeof(double))
+        for inda in range(ngiven):
+            for indb in range(ldxgiven):
+                xgiven_c[indb + ldxgiven * inda] = xgiven[indb][inda]
+        nextra_c = <int> nextra
+        if peakfinder:
+            raise CyCubaError(
+                "The use of peakfinder functions in CyCuba's Divonne integrator has not been fully implemented. If you really must use peakfinder, then congratulations, you've just become a CyCuba developer!"
+            _peakfinder_c = _peakfinder_c_true
+#        else:
+#            _peakfinder_c = _peakfinder_empty_c
+            
+        peakfinder_b_c = <double*> PyMem_Malloc(ndim * 2 * sizeof(double))
+
+        ccuba.Divonne(
+            ndim_c, ncomp_c, _integrand_c, userdata_c, nvec_c, epsrel_c,
+            epsabs_c, flags_c, seed_c, mineval_c, maxeval_c, key1_c,
+            key2_c, key3_c, maxpass_c, border_c, maxchisq_c, mindeviation_c,
+            ngiven_c, ldxgiven_c, xgiven_c, nextra_c, _peakfinder_c,
+            statefile_c, spin_c, nregions_c, neval_c, fail_c, integral_c,
+            error_c, prob_c)
+        PyMem_Free(xgiven_c)
+        PyMem_Free(peakfinder_b_c)
     elif integrator == 'cuhre':
         key_c = <int> key
 
@@ -159,71 +205,15 @@ cdef int _integrand_c(const int *ndim, const ccuba.cubareal x[],
         return <int>-999
     return 0
 
-#cdef void _peakfinder_c(const int *ndim, const double b[],
-#                        int *n, double f[], void *userdata):
-#    try:
-#        func = <object> userdata
-#        x_py = [<double> entry for entry in x[:ndim[0]]]
-#        b_py = [[
-
-def integer_bit_flags(verbosity=3, all_samples=True,
-                      vegas_suave_smoothing=False, delete_state_file=True,
-                      vegas_use_file_state=True, level=0):
-    level_key = 3 if level > 4 and level < 24 else level
-    flag_string = (
-        format(level_key, 'b')
-        + {True: '0', False: '1'}[vegas_use_file_state]
-        + {True: '0', False: '1'}[delete_state_file]
-        + {True: '0', False: '1'}[vegas_suave_smoothing]
-        + {True: '0', False: '1'}[all_samples]
-        + {0: '00', 1: '01', 2: '10', 3: '11'}[verbosity]
-    )
-    return int(flag_string,base=2)
-
-
-def test_run():
-    def test_function(x, y):
-        return [1 if x**2 + y**2 < 1 else 0]
-    args = ('cuhre', # integrator
-            #Common arguments
-            2, # ndim
-            1, # ncomp
-            test_function, # integrand
-            1, # nvec
-            1e-3, # epsrel
-            1e-12, # epsabs
-            11, # flags
-            0, # seed
-            1e2, # mineval
-            1e5, # maxeval
-            "", # statefile
-            1, # spin
-            # Vegas-specific
-            1000, # nstart
-            500, # nincrease
-            1000, # nbatch
-            0, # gridno
-            # Suave-specific
-            0, # nnew
-            0, # nmin
-            0, # flatness
-            #Divonne-specific
-            0, # key1
-            0, # key2
-            0, # key3
-            0, # maxpass
-            0, # border
-            0, # maxchisq
-            0, # mindeviation
-            0, # ngiven
-            0, # ldxgiven
-            0, # xgiven
-            0, # nextra
-            0, # peakfinder
-            # Cuhre-specific
-            0 # key
-    )
-    return _cuba(*args)
-
-
-    
+cdef void _peakfinder_c_true(const int *ndim, const double b[],
+                        int *n, double x[], void *userdata):
+    obj = <object> userdata
+    func = obj.peakfinder
+    b_py = [[<double> b[ind * ndim[0]], <double> b[ind * ndim[0] + 1]]
+            for ind in ndim[0]]
+    n_py = n[0]
+    out_py_n, out_py_x = func(b_py,n_py)
+    for inda in range(out_py_n):
+        for indb in range(ndim[0]):
+            x[inda * ndim[0] + indb] = <double> out_py_x[inda][indb]
+    n[0] = <int> out_py_n

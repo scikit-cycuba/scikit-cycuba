@@ -1,5 +1,7 @@
 from functools import reduce
 from inspect import signature
+from os import linesep
+from warnings import warn
 
 from _cycuba import _cuba
 
@@ -32,16 +34,20 @@ def integer_bit_flags(verbosity, last_samples_only, do_not_smooth_vs,
     level_key = 3 if level > 4 and level < 24 else level
     flag_string = (
         format(level_key, 'b')
-        + {True: '0', False: '1'}[file_grid_only_v]
-        + {True: '0', False: '1'}[retain_state_file]
-        + {True: '0', False: '1'}[do_not_smooth_vs]
-        + {True: '0', False: '1'}[last_samples_only]
+        + {True: '1', False: '0'}[file_grid_only_v]
+        + {True: '1', False: '0'}[retain_state_file]
+        + {True: '1', False: '0'}[do_not_smooth_vs]
+        + {True: '1', False: '0'}[last_samples_only]
         + {0: '00', 1: '01', 2: '10', 3: '11'}[verbosity]
     )
     return int(flag_string,base=2)
 
 
 class CyCubaError(Exception):
+    pass
+
+
+class CyCubaWarning(UserWarning):
     pass
 
 
@@ -78,21 +84,66 @@ class CyCubaIntegration(object):
                 self.epsrel, self.epsabs, flags, self.seed, self.mineval,
                 self.maxeval, self.statefile, self.spin)
 
-    def _vegas(self, flags, nstart, nincrease, nbatch, gridno):
-        args = (self.base_args(flags) +
-                (nstart, nincrease, nbatch, gridno) +
-                self.empty_suave_args + 
-                self.empty_divonne_args +
-                self.empty_cuhre_args)
-        return _cuba('vegas', *args)
+    def _vegas(self, flags, *args):
+        vegas_args = (self.base_args(flags) +
+                      args + 
+                      self.empty_suave_args + 
+                      self.empty_divonne_args +
+                      self.empty_cuhre_args)
+        out = _cuba('vegas', *vegas_args)
+        [self.neval, self.fail, self.integral, self.error, self.prob] = out
+        self._check_fail()
+        return [self.integral, self.error, self.prob]
+        
 
-    def _cuhre(self, flags, key):
-        args = (self.base_args(flags) +
-                self.empty_vegas_args +
-                self.empty_suave_args + 
-                self.empty_divonne_args +
-                (key,))
-        return _cuba('cuhre', *args)
+    def _suave(self, flags, *args):
+        suave_args = (self.base_args(flags) +
+                      self.empty_vegas_args +
+                      args +
+                      self.empty_divonne_args +
+                      self.empty_cuhre_args)
+        out = _cuba('suave', *suave_args)
+        [self.neval, self.nregions, self.fail,
+         self.integral, self.error, self.prob] = out
+        self._check_fail()
+        return [self.integral, self.error, self.prob]
+
+    def _divonne(self, flags, *args):
+        divonne_args = (self.base_args(flags) +
+                        self.empty_vegas_args +
+                        self.empty_suave_args +
+                        args +
+                        self.empty_cuhre_args)
+        out =  _cuba('divonne', *divonne_args)
+        [self.neval, self.nregions, self.fail,
+         self.integral, self.error, self.prob] = out
+        self._check_fail()
+        return [self.integral, self.error, self.prob]
+
+    def _cuhre(self, flags, *args):
+        cuhre_args = (self.base_args(flags) +
+                      self.empty_vegas_args +
+                      self.empty_suave_args + 
+                      self.empty_divonne_args +
+                      args)
+        out = _cuba('cuhre', *cuhre_args)
+        [self.neval, self.nregions, self.fail,
+         self.integral, self.error, self.prob] = out
+        self._check_fail()
+        return [self.integral, self.error, self.prob]
+
+    def _check_fail(self):
+        if self.fail == -1:
+            raise CyCubaError("Dimension out of range!")
+        elif self.fail > 0:
+            if self.fail == 1:
+                warn("Accuracy goal not achieved!", CyCubaWarning)
+            else:
+                warn(
+                    "Accuracy goal not achieved! " + linesep + 
+                    "Approximately "+str(fail)+" additional points" +
+                    " required to reach desired accuracy.", CyCubaWarning)
+    
 
                      
 def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
@@ -105,6 +156,31 @@ def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
     return cycuba_integration._vegas(flags, nstart, nincrease, nbatch, gridno)
 
 
+def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
+          verbosity=ibf_v, last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
+          retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level = ibf_l,
+          **kwargs):
+    cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
+    flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
+                              retain_state_file, file_grid_only, level)
+    return cycuba_integration._suave(flags, nnew, nmin, flatness)
+
+
+def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
+            mindeviation, ngiven, ldxgiven, xgiven, nextra, peakfinder,
+            verbosity=ibf_v,
+            last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
+            retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level=ibf_l,
+            **kwargs):
+    cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
+    flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
+                              retain_state_file, file_grid_only, level)
+    return cycuba_integration._divonne(flags, key1, key2, key3, maxpass, border,
+                                     maxchisq, mindeviation, ngiven, ldxgiven,
+                                     xgiven, nextra, peakfinder)
+    
+
+
 def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
           last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
           retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level=ibf_l,
@@ -113,6 +189,11 @@ def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
     return cycuba_integration._cuhre(flags, key)
+
+
+#def test_Divonne():
+#    divonne_args = (47, 1, 1, 5, 0, 10, .25, 0, ndim, 0)
+    
 
 
 if __name__ == "__main__":
