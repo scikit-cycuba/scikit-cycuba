@@ -147,8 +147,8 @@ void (*peakfinder_t)(const int* ndim, const double b[],
         if peakfinder:
             raise Exception(
                 "The use of peakfinder functions in CyCuba's Divonne " +
-                "integrator has not been fully implemented. If you really " +
-                "must use peakfinder, then please contact the developers " +
+                "integrator has not been fully implemented. If you need " +
+                "peakfinder, then please contact the developers " +
                 "in order to help them set up test problems and APIs.")
             nextra_c = <int> nextra
             _peakfinder_c = _peakfinder_c_true
@@ -177,15 +177,15 @@ void (*peakfinder_t)(const int* ndim, const double b[],
         raise Exception("Bad value for integrator")
 
     if integrator in ['suave', 'divonne', 'cuhre']:
-        out.append(nregions_c[0])
+        out.append(<object> nregions_c[0])
     integral = [integral_c[i] for i in range(ncomp)]
     error = [error_c[i] for i in range(ncomp)]
     prob = [prob_c[i] for i in range(ncomp)]
     PyMem_Free(integral_c)
     PyMem_Free(error_c)
     PyMem_Free(prob_c)
-
-    out.extend([neval_c[0], fail_c[0], integral, error, prob])
+    print(fail_c[0])
+    out.extend([<object> neval_c[0], <object> fail_c[0], integral, error, prob])
     return out
 
 cdef int _integrand_c(const int *ndim, const ccuba.cubareal x[],

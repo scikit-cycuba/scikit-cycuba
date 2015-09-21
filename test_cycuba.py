@@ -238,3 +238,19 @@ def _cuhre_test_runner(ind):
 @pytest.mark.parametrize('ind', range(11))
 def test_Cuhre(ind):
     out = _cuhre_test_runner(ind)
+
+
+def test_scaling():
+    kwargs = {}
+    kwargs.update(flag_kwargs)
+    kwargs.update(common_kwargs)
+    kwargs['maxeval'] = 5e5
+    def test_function(x, y):
+        return [1 if 1 - x**2 - y**2 > 0 else 0]
+    [integral, error, prob] = Divonne(
+        test_function, ranges=[[-1, 1], [-1, 1]],
+        key1=key1, key2=key2, key3=key3, maxpass=maxpass, border=border,
+        maxchisq=maxchisq, mindeviation=mindeviation, ngiven=ngiven,
+        ldxgiven=ldxgiven, xgiven=xgiven, nextra=nextra, peakfinder=peakfinder,
+        **kwargs)
+    nptest.assert_allclose(integral, pi, atol=1e-2)

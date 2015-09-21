@@ -1,10 +1,12 @@
 from functools import reduce
 from inspect import signature
 from os import linesep
-from warnings import warn
+from warnings import warn, simplefilter
+from operator import mul
 
 from _cycuba import _cuba
 
+simplefilter('always')
 
 ibf_v = 0
 ibf_lso = False
@@ -13,20 +15,19 @@ ibf_rsf = False
 ibf_fgo = False
 ibf_l = 0
 
-
 class ScaledIntegrand(object):
     def __init__(self, f, ranges):
         self.f = f
         self.ranges = ranges
         self.diffs = [range_[1] - range_[0] for range_ in ranges]
-        self.jacobian = reduce(operator.mul, self.diffs, 1)
+        self.jacobian = reduce(mul, self.diffs, 1)
 
     def __call__(self, *args):
-        if len(args) == len(ranges):
+        if len(args) != len(self.ranges):
             raise CyCubaError("different lengths of args and ranges!")
         scaled_args = [range_[0] + x * diff for (range_, diff, x) in
                        zip(self.ranges, self.diffs, args)]
-        return self.f(*scaled_args) * self.jacobian
+        return [item * self.jacobian for item in self.f(*scaled_args)]
 
 
 def integer_bit_flags(verbosity, last_samples_only, do_not_smooth_vs,
@@ -54,17 +55,14 @@ class CyCubaWarning(UserWarning):
 class CyCubaIntegration(object):
     def __init__(self, integrand, ranges, epsrel=1e-3, epsabs=1e-12, seed=0,
                  mineval=0, maxeval=1e6, statefile=""):
-        self.integrand = integrand
         self.ndim = len(signature(integrand).parameters)
         self.ranges = ranges
         # Set things up for scaling integrands
         if self.ranges:
-            self.diffs = [range_[1] - range_[0] for range_ in ranges]
-            self.jacobian = reduce(operator.mul, self.diffs, 1)
-            self.test_args = [range_[0] + 0.5 * diff
-                              for range_, diff in zip(ranges, diffs)]
+            self.integrand = ScaledIntegrand(integrand, ranges)
         else:
-            self.test_args = [0.5 for ind in range(self.ndim)]
+            self.integrand = integrand
+        self.test_args = [0.5 for ind in range(self.ndim)]
         self.ncomp = len(self.integrand(*self.test_args))
         self.nvec = 1  # Vectorized integrands not yet supported.
         self.epsrel = epsrel
@@ -128,8 +126,10 @@ class CyCubaIntegration(object):
         out = _cuba('cuhre', *cuhre_args)
         [self.neval, self.nregions, self.fail,
          self.integral, self.error, self.prob] = out
-        self._check_fail()
-        return [self.integral, self.error, self.prob]
+        try:
+            self._check_fail()
+        finally:
+            return [self.integral, self.error, self.prob]
 
     def _check_fail(self):
         if self.fail == -1:
@@ -144,6 +144,7 @@ class CyCubaIntegration(object):
                     " required to reach desired accuracy.", CyCubaWarning)
 
 
+
 def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
           gridno=0, verbosity=ibf_v, last_samples_only=ibf_lso,
           do_not_smooth=ibf_dns, retain_state_file=ibf_rsf,
@@ -151,7 +152,9 @@ def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
-    return cycuba_integration._vegas(flags, nstart, nincrease, nbatch, gridno)
+    out = cycuba_integration._vegas(
+        flags, nstart, nincrease, nbatch, gridno)
+    return out
 
 
 def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
@@ -161,7 +164,8 @@ def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
-    return cycuba_integration._suave(flags, nnew, nmin, flatness)
+    out = cycuba_integration._suave(flags, nnew, nmin, flatness)
+    return out
 
 
 def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
@@ -173,9 +177,10 @@ def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
-    return cycuba_integration._divonne(
+    out = cycuba_integration._divonne(
         flags, key1, key2, key3, maxpass, border, maxchisq, mindeviation,
         ngiven, ldxgiven, xgiven, nextra, peakfinder)
+    return out
 
 
 def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
@@ -185,4 +190,5 @@ def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
                               retain_state_file, file_grid_only, level)
-    return cycuba_integration._cuhre(flags, key)
+    out = cycuba_integration._cuhre(flags, key)
+    return out
