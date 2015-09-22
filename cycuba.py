@@ -4,6 +4,8 @@ from os import linesep
 from warnings import warn, simplefilter
 from operator import mul
 
+import pytest
+
 from _cycuba import _cuba
 
 simplefilter('always')
@@ -192,3 +194,6 @@ def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
                               retain_state_file, file_grid_only, level)
     out = cycuba_integration._cuhre(flags, key)
     return out
+
+def test():
+    pytest.main()

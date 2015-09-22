@@ -47,7 +47,8 @@ various options and capabilities the library provides. This library and its
 accompanying header files should be placed in a "normal" location for your
 system, or else environment variables can be modified in order to point to their
 location. For instance, if the library is placed in ``~/lib/`` and the library
-header file ``cuba.h`` is placed in ``~/include/``, then one could write:
+header file ``cuba.h`` is placed in ``~/include/``, then one could write
+(OS X or Linux): 
 
     export CFLAGS="-I ~/include/ $CFLAGS"
     export LDFLAGS="-L ~/lib/ $LDFLAGS"
@@ -55,8 +56,7 @@ header file ``cuba.h`` is placed in ``~/include/``, then one could write:
 Once this library is available, the CyCuba package can be
 installed using the normal command: ``python setup.py install``. You will need
 to have the ``cython``, ``numpy``, and ``pytest`` packages installed.  The
-package tests may be run by executing ``py.test`` in the installation
-directory.
+package tests may be run as ``cycuba.test()``.
 
 
 
