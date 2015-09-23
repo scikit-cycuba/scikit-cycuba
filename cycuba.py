@@ -1,6 +1,6 @@
 from functools import reduce
 from inspect import signature
-from os import linesep
+from os import linesep, environ
 from warnings import warn, simplefilter
 from operator import mul
 
@@ -9,6 +9,10 @@ import pytest
 from _cycuba import _cuba
 
 simplefilter('always')
+# Parallelization within Cuba is not yet supported. Testing procedures are
+# required in order to make certain that the Python wrapper is thread-safe,
+# since the PyMultiNest project found that there were problems.
+environ['CUBACORES'] = '1'
 
 ibf_v = 0
 ibf_lso = False
@@ -152,8 +156,10 @@ def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
           do_not_smooth=ibf_dns, retain_state_file=ibf_rsf,
           file_grid_only=ibf_fgo, level=ibf_l, **kwargs):
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
-    flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
-                              retain_state_file, file_grid_only, level)
+    flags = integer_bit_flags(
+        verbosity=verbosity, last_samples_only=last_samples_only,
+        do_not_smooth=do_not_smooth, retain_state_file=retain_state_file,
+        file_grid_only=file_grid_only, level=level)
     out = cycuba_integration._vegas(
         flags, nstart, nincrease, nbatch, gridno)
     return out
@@ -161,11 +167,13 @@ def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
 
 def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
           verbosity=ibf_v, last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
-          retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level=ibf_l,
+          retain_state_file=ibf_rsf, level=ibf_l,
           **kwargs):
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
-    flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
-                              retain_state_file, file_grid_only, level)
+    flags = integer_bit_flags(
+        verbosity=verbosity, last_samples_only=last_samples_only,
+        do_not_smooth=do_not_smooth, retain_state_file=retain_state_file,
+        file_grid_only=False, level=level)
     out = cycuba_integration._suave(flags, nnew, nmin, flatness)
     return out
 
@@ -173,12 +181,14 @@ def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
 def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
             mindeviation, ngiven, ldxgiven, xgiven, nextra, peakfinder,
             verbosity=ibf_v,
-            last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
-            retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level=ibf_l,
+            last_samples_only=ibf_lso, retain_state_file=ibf_rsf,
+            level=ibf_l,
             **kwargs):
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
-    flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
-                              retain_state_file, file_grid_only, level)
+    flags = integer_bit_flags(
+        verbosity=verbosity, last_samples_only=last_samples_only,
+        do_not_smooth=False, retain_state_file=retain_state_file,
+        file_grid_only=False, level=level)
     out = cycuba_integration._divonne(
         flags, key1, key2, key3, maxpass, border, maxchisq, mindeviation,
         ngiven, ldxgiven, xgiven, nextra, peakfinder)
@@ -186,12 +196,16 @@ def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
 
 
 def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
-          last_samples_only=ibf_lso, do_not_smooth=ibf_dns,
-          retain_state_file=ibf_rsf, file_grid_only=ibf_fgo, level=ibf_l,
+          last_samples_only=ibf_lso, retain_state_file=ibf_rsf,
           **kwargs):
+    if 'seed' in kwargs:
+        warn("Cuhre is a deterministic routine. Ignoring value for 'seed'",
+             CyCubaWarning)
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
-    flags = integer_bit_flags(verbosity, last_samples_only, do_not_smooth,
-                              retain_state_file, file_grid_only, level)
+    flags = integer_bit_flags(
+        verbosity=verbosity, last_samples_only=last_samples_only,
+        do_not_smooth=False, retain_state_file=retain_state_file,
+        file_grid_only=False, level=0)
     out = cycuba_integration._cuhre(flags, key)
     return out
 
