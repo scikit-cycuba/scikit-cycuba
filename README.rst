@@ -70,7 +70,7 @@ Simplest possible usage:
 
 ``Vegas/Suave/Divonne/Cuhre(integrand, ranges=None)``
 
-- ``integrand``: Python callable object. The signature is y = f(*args), where y
+- ``integrand``: Python callable object. The signature is ``y = f(*args)``, where y
   is an iterable. The Python wrapper handles the necessary conversion to the
   required Cuba form. The ``userdata`` pointer is not available; if context must
   be provided to ``integrand``, then it should be defined as a callable class,
