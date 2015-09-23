@@ -178,8 +178,9 @@ def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
     return out
 
 
-def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
-            mindeviation, ngiven, ldxgiven, xgiven, nextra, peakfinder,
+def Divonne(integrand, ranges=None, key1=47, key2=1, key3=1, maxpass=5,
+            border=0, maxchisq=10, mindeviation=.25, xgiven=[], nextra=0,
+            peakfinder=None,
             verbosity=ibf_v,
             last_samples_only=ibf_lso, retain_state_file=ibf_rsf,
             level=ibf_l,
@@ -189,6 +190,8 @@ def Divonne(integrand, ranges, key1, key2, key3, maxpass, border, maxchisq,
         verbosity=verbosity, last_samples_only=last_samples_only,
         do_not_smooth=False, retain_state_file=retain_state_file,
         file_grid_only=False, level=level)
+    ngiven = len(xgiven)
+    ldxgiven = len(xgiven[0])
     out = cycuba_integration._divonne(
         flags, key1, key2, key3, maxpass, border, maxchisq, mindeviation,
         ngiven, ldxgiven, xgiven, nextra, peakfinder)
