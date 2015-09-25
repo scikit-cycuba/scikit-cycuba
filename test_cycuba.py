@@ -42,11 +42,7 @@ peakfinder = None
 
 key = 0
 
-verbose = 2
-
-flag_kwargs = {'verbosity': 0, 'last_samples_only': False,
-               'do_not_smooth': False, 'retain_state_file': False,
-               'file_grid_only': False, 'level': 0}
+verbose = 0
 
 common_kwargs = {'epsrel': epsrel, 'epsabs': epsabs, 'seed': seed,
                  'mineval': mineval, 'maxeval': maxeval,
@@ -143,8 +139,9 @@ class TestIntegrand(object):
 
 
 def _vegas_test_runner(ind):
-    kwargs = {}
-    kwargs.update(flag_kwargs)
+    kwargs = {'verbosity': verbose, 'last_samples_only': False,
+              'do_not_smooth': False, 'retain_state_file': False,
+              'file_grid_only': False, 'level': 0}
     kwargs.update(common_kwargs)
     [integral, error, prob] = Vegas(
         TestIntegrand(ind), ranges=None,
@@ -168,9 +165,9 @@ def test_Vegas(ind):
 
 
 def _suave_test_runner(ind):
-    kwargs = {}
-    kwargs.update(flag_kwargs)
-    kwargs['last_samples_only'] = True
+    kwargs = {'verbosity': verbose, 'last_samples_only': True,
+              'do_not_smooth': False, 'retain_state_file': False,
+              'level': 0}
     kwargs.update(common_kwargs)
     [integral, error, prob] = Suave(
         TestIntegrand(ind), ranges=None,
@@ -192,14 +189,14 @@ def test_Suave(ind):
 
 
 def _divonne_test_runner(ind):
-    kwargs = {}
-    kwargs.update(flag_kwargs)
+    kwargs = {'verbosity': verbose, 'last_samples_only': False,
+              'retain_state_file': False, 'level': 0}
     kwargs.update(common_kwargs)
     [integral, error, prob] = Divonne(
         TestIntegrand(ind), ranges=None,
         key1=key1, key2=key2, key3=key3, maxpass=maxpass, border=border,
-        maxchisq=maxchisq, mindeviation=mindeviation, ngiven=ngiven,
-        ldxgiven=ldxgiven, xgiven=xgiven, nextra=nextra, peakfinder=peakfinder,
+        maxchisq=maxchisq, mindeviation=mindeviation, xgiven=xgiven,
+        nextra=nextra, peakfinder=peakfinder,
         **kwargs)
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
@@ -207,7 +204,7 @@ def _divonne_test_runner(ind):
     for item in zip(  # Not comparing prob values.
             [integral, error], divonne_results[ind], err_msgs):
         nptest.assert_allclose(
-            item[0], item[1], atol=1e-12, rtol=1e-3,
+            item[0], item[1], atol=1e-12, rtol=3e-2,
             err_msg="Problem #: " + str(ind) + " " + item[2])
 
 
@@ -217,9 +214,8 @@ def test_Divonne(ind):
 
 
 def _cuhre_test_runner(ind):
-    kwargs = {}
-    kwargs.update(flag_kwargs)
-    kwargs['last_samples_only'] = True
+    kwargs = {'verbosity': verbose, 'last_samples_only': True,
+              'retain_state_file': False}
     kwargs.update(common_kwargs)
     [integral, error, prob] = Cuhre(
         TestIntegrand(ind), ranges=None,
@@ -241,8 +237,8 @@ def test_Cuhre(ind):
 
 
 def test_scaling():
-    kwargs = {}
-    kwargs.update(flag_kwargs)
+    kwargs = {'verbosity': verbose, 'last_samples_only': False,
+              'retain_state_file': False, 'level': 0}
     kwargs.update(common_kwargs)
     kwargs['maxeval'] = 5e5
     def test_function(x, y):
@@ -250,7 +246,7 @@ def test_scaling():
     [integral, error, prob] = Divonne(
         test_function, ranges=[[-1, 1], [-1, 1]],
         key1=key1, key2=key2, key3=key3, maxpass=maxpass, border=border,
-        maxchisq=maxchisq, mindeviation=mindeviation, ngiven=ngiven,
-        ldxgiven=ldxgiven, xgiven=xgiven, nextra=nextra, peakfinder=peakfinder,
+        maxchisq=maxchisq, mindeviation=mindeviation, xgiven=xgiven,
+        nextra=nextra, peakfinder=peakfinder,
         **kwargs)
     nptest.assert_allclose(integral, pi, atol=1e-2)

@@ -158,8 +158,8 @@ def Vegas(integrand, ranges=None, nstart=1e3, nincrease=5e2, nbatch=1e3,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(
         verbosity=verbosity, last_samples_only=last_samples_only,
-        do_not_smooth=do_not_smooth, retain_state_file=retain_state_file,
-        file_grid_only=file_grid_only, level=level)
+        do_not_smooth_vs=do_not_smooth, retain_state_file=retain_state_file,
+        file_grid_only_v=file_grid_only, level=level)
     out = cycuba_integration._vegas(
         flags, nstart, nincrease, nbatch, gridno)
     return out
@@ -172,8 +172,8 @@ def Suave(integrand, ranges=None, nnew=1000, nmin=2, flatness=25,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(
         verbosity=verbosity, last_samples_only=last_samples_only,
-        do_not_smooth=do_not_smooth, retain_state_file=retain_state_file,
-        file_grid_only=False, level=level)
+        do_not_smooth_vs=do_not_smooth, retain_state_file=retain_state_file,
+        file_grid_only_v=False, level=level)
     out = cycuba_integration._suave(flags, nnew, nmin, flatness)
     return out
 
@@ -188,10 +188,13 @@ def Divonne(integrand, ranges=None, key1=47, key2=1, key3=1, maxpass=5,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(
         verbosity=verbosity, last_samples_only=last_samples_only,
-        do_not_smooth=False, retain_state_file=retain_state_file,
-        file_grid_only=False, level=level)
+        do_not_smooth_vs=False, retain_state_file=retain_state_file,
+        file_grid_only_v=False, level=level)
     ngiven = len(xgiven)
-    ldxgiven = len(xgiven[0])
+    try:
+        ldxgiven = len(xgiven[0])
+    except IndexError:
+        ldxgiven = cycuba_integration.ndim
     out = cycuba_integration._divonne(
         flags, key1, key2, key3, maxpass, border, maxchisq, mindeviation,
         ngiven, ldxgiven, xgiven, nextra, peakfinder)
@@ -207,8 +210,8 @@ def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
     cycuba_integration = CyCubaIntegration(integrand, ranges, **kwargs)
     flags = integer_bit_flags(
         verbosity=verbosity, last_samples_only=last_samples_only,
-        do_not_smooth=False, retain_state_file=retain_state_file,
-        file_grid_only=False, level=0)
+        do_not_smooth_vs=False, retain_state_file=retain_state_file,
+        file_grid_only_v=False, level=0)
     out = cycuba_integration._cuhre(flags, key)
     return out
 
