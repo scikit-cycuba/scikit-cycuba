@@ -1,6 +1,7 @@
 .DS_Store
 build/
 *.c
+*.pyc
 *~
 *.so
 cython_debug/
