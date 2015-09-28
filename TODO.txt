@@ -1,0 +1,5 @@
+- Figure out and test concurrency feature of Cuba from Python
+- Allow user to pass C-pointer functions (ctypes, Cython, etc.) to Cuba directly
+    from Python.
+- Implement more complete wrapper of Divonne, including testing of all allowable
+    features. 
