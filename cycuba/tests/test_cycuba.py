@@ -3,8 +3,8 @@ from math import pi, sin, cos, exp, sqrt
 import numpy.testing as nptest
 import pytest
 
-from cycuba import (Vegas, Suave, Divonne, Cuhre,
-                    integer_bit_flags, CyCubaError, CyCubaWarning)
+from cycuba import Vegas, Suave, Divonne, Cuhre
+from cycuba import CyCubaError, CyCubaWarning
 
 ndim = 3
 ncomp = 1
