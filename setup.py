@@ -1,7 +1,8 @@
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 import os
 import sys
 import subprocess
+
 CYTHONIZE = True
 cwd = os.path.abspath(os.path.dirname(__file__))
 cython_directory = os.path.join(cwd, 'cycuba')
@@ -16,7 +17,6 @@ for filename in extension_filenames:
             raise RuntimeError("Cythonize failed!")
     extension_sources.append(file_name_c)
 
-
 extensions = [Extension('_cycuba', extension_sources, libraries=['cuba'])]
 
 setup(name='cycuba', version='0.1.0',
@@ -24,5 +24,5 @@ setup(name='cycuba', version='0.1.0',
       'A Cython wrapper to the Cuba library (http://www.feynarts.de/cuba/)',
       long_description=None, author='C. Nathan Woods',
       author_email='woodscn@lanl.gov', license='BSD',
-      ext_modules=extensions
+      ext_modules=extensions, packages = find_packages()
       )
