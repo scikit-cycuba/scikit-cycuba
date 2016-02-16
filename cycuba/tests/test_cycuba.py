@@ -151,7 +151,7 @@ def _vegas_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip(  # Not comparing prob values.
+    for item in zip(  # Not comparing prob values or neval.
             [integral, error], vegas_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
@@ -176,7 +176,7 @@ def _suave_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip(  # Not comparing prob values.
+    for item in zip(  # Not comparing prob values or neval.
             [integral, error], suave_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
@@ -201,7 +201,7 @@ def _divonne_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip(  # Not comparing prob values.
+    for item in zip(  # Not comparing prob values or neval.
             [integral, error], divonne_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,
@@ -226,7 +226,7 @@ def _cuhre_test_runner(ind):
     err_msgs = ["Integral values do not match!",
                 "Error values do not match!",
                 "P-values do not match!"]
-    for item in zip(  # Not comparing prob values.
+    for item in zip(  # Not comparing prob values or neval.
             [integral, error], cuhre_results[ind], err_msgs):
         nptest.assert_allclose(
             item[0], item[1], atol=1e-12, rtol=1e-3,

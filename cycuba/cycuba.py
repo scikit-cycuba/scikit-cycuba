@@ -97,7 +97,7 @@ class CyCubaIntegration(object):
         out = _cuba('vegas', *vegas_args)
         [self.neval, self.fail, self.integral, self.error, self.prob] = out
         self._check_fail()
-        return [self.integral, self.error, self.prob]
+        return [self.integral, self.error, self.prob, self.neval]
 
     def _suave(self, flags, *args):
         suave_args = (self.base_args(flags) +
@@ -109,7 +109,7 @@ class CyCubaIntegration(object):
         [self.neval, self.nregions, self.fail,
          self.integral, self.error, self.prob] = out
         self._check_fail()
-        return [self.integral, self.error, self.prob]
+        return [self.integral, self.error, self.prob, self.neval]
 
     def _divonne(self, flags, *args):
         divonne_args = (self.base_args(flags) +
@@ -121,7 +121,7 @@ class CyCubaIntegration(object):
         [self.neval, self.nregions, self.fail,
          self.integral, self.error, self.prob] = out
         self._check_fail()
-        return [self.integral, self.error, self.prob]
+        return [self.integral, self.error, self.prob, self.neval]
 
     def _cuhre(self, flags, *args):
         cuhre_args = (self.base_args(flags) +
@@ -135,7 +135,7 @@ class CyCubaIntegration(object):
         try:
             self._check_fail()
         finally:
-            return [self.integral, self.error, self.prob]
+            return [self.integral, self.error, self.prob, self.neval]
 
     def _check_fail(self):
         if self.fail == -1:

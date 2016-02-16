@@ -53,14 +53,16 @@ header file ``cuba.h`` is placed in ``~/include/``, then one could write
     export CFLAGS="-I ~/include/ $CFLAGS"
     export LDFLAGS="-L ~/lib/ $LDFLAGS"
 
-Once this library is available, the CyCuba package can be
-installed using the normal command: ``python setup.py install``. You will need
-to have the ``cython``, ``numpy``, and ``pytest`` packages installed.  The
-package tests may be run as ``cycuba.test()``.
+One can also handle the library location using a setup.cfg file. Once this
+library is available, the CyCuba package can be installed using the normal
+command: ``python setup.py install``. You will need to have the ``cython``,
+``numpy``, and ``pytest`` packages installed.  The package tests may be run as
+``cycuba.test()``.
 
 
 Usage
 -----
+
 CyCuba provides wrappers to the four Cuba routines: Vegas, Suave, Divonne, and
 Cuhre. Detailed descriptions of these routines are available in the Cuba
 documentation (Ref. 1), and only the necessary Python equivalents are given
