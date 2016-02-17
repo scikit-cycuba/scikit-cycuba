@@ -86,6 +86,7 @@ Simplest possible usage:
 
 
 Common arguments:
+
 - ``epsrel=1e-3``, ``epsabs=1e-12``: The requested relative and absolute accuracies.
 
 - ``mineval=0``, ``maxeval=1e6``: The minimum and maximum allowed number of
@@ -192,6 +193,7 @@ Cuhre-specific arguments:
 
 References
 ----------
+
 1. Cuba - a library for multidimensional numerical integration
 (http://arxiv.org/abs/hep-ph/0404043)
 
