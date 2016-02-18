@@ -40,6 +40,9 @@ Requirements
 Installation
 ------------
 
+The simplest way to install CyCuba is using the `conda` distribution
+package. The command to do so is: `conda install -c woodscn cycuba`.
+
 CyCuba relies on a working copy of the Cuba library. The most current version of
 this library can be obtained from http://www.feynarts.de/cuba/, along with
 papers which describe in detail the algorithms used in Cuba, along with the
