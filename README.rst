@@ -31,6 +31,7 @@ incomplete features that you need, please post an issue to GitHub
 Requirements
 ------------
 
+- python 3.5
 - Cuba
 - cython
 - numpy
