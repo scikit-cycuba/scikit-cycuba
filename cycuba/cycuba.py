@@ -1,6 +1,6 @@
 from functools import reduce
 from inspect import signature
-from os import linesep, environ
+from os import linesep, environ, path
 from warnings import warn, simplefilter
 from operator import mul
 
@@ -216,4 +216,4 @@ def Cuhre(integrand, ranges=None, key=0, verbosity=ibf_v,
     return out
 
 def test():
-    pytest.main()
+    pytest.main(path.dirname(path.abspath(__file__)))

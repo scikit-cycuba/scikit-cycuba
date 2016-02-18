@@ -143,7 +143,7 @@ def _vegas_test_runner(ind):
               'do_not_smooth': False, 'retain_state_file': False,
               'file_grid_only': False, 'level': 0}
     kwargs.update(common_kwargs)
-    [integral, error, prob] = Vegas(
+    [integral, error, prob, neval] = Vegas(
         TestIntegrand(ind), ranges=None,
         nstart=nstart, nincrease=nincrease,
         nbatch=nbatch, gridno=gridno,
@@ -169,7 +169,7 @@ def _suave_test_runner(ind):
               'do_not_smooth': False, 'retain_state_file': False,
               'level': 0}
     kwargs.update(common_kwargs)
-    [integral, error, prob] = Suave(
+    [integral, error, prob, neval] = Suave(
         TestIntegrand(ind), ranges=None,
         nnew=nnew, nmin=nmin, flatness=flatness,
         **kwargs)
@@ -192,7 +192,7 @@ def _divonne_test_runner(ind):
     kwargs = {'verbosity': verbose, 'last_samples_only': False,
               'retain_state_file': False, 'level': 0}
     kwargs.update(common_kwargs)
-    [integral, error, prob] = Divonne(
+    [integral, error, prob, neval] = Divonne(
         TestIntegrand(ind), ranges=None,
         key1=key1, key2=key2, key3=key3, maxpass=maxpass, border=border,
         maxchisq=maxchisq, mindeviation=mindeviation, xgiven=xgiven,
@@ -219,7 +219,7 @@ def _cuhre_test_runner(ind):
     kwargs = {'verbosity': verbose, 'last_samples_only': True,
               'retain_state_file': False}
     kwargs.update(common_kwargs)
-    [integral, error, prob] = Cuhre(
+    [integral, error, prob, neval] = Cuhre(
         TestIntegrand(ind), ranges=None,
         key=key,
         **kwargs)
@@ -245,7 +245,7 @@ def test_scaling():
     kwargs['maxeval'] = 5e5
     def test_function(x, y):
         return [1 if 1 - x**2 - y**2 > 0 else 0]
-    [integral, error, prob] = Divonne(
+    [integral, error, prob, neval] = Divonne(
         test_function, ranges=[[-1, 1], [-1, 1]],
         key1=key1, key2=key2, key3=key3, maxpass=maxpass, border=border,
         maxchisq=maxchisq, mindeviation=mindeviation, xgiven=xgiven,
