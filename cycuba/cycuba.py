@@ -1,5 +1,6 @@
+import sys
+import inspect
 from functools import reduce
-from inspect import signature
 from os import linesep, environ, path
 from warnings import warn, simplefilter
 from operator import mul
@@ -21,6 +22,18 @@ ibf_rsf = False
 ibf_fgo = False
 ibf_l = 0
 
+
+def get_ndim(integrand):
+    if sys.version_info[0] < 3:
+        if inspect.isfunction(integrand):
+            out = len(inspect.getargspec(integrand)[0])
+        else:
+            out = len(inspect.getargspec(integrand.__call__)[0]) - 1
+    else:
+        out = len(inspect.signature(integrand).parameters)
+    return out
+
+    
 class ScaledIntegrand(object):
     def __init__(self, f, ranges):
         self.f = f
@@ -61,7 +74,7 @@ class CyCubaWarning(UserWarning):
 class CyCubaIntegration(object):
     def __init__(self, integrand, ranges, epsrel=1e-3, epsabs=1e-12, seed=0,
                  mineval=0, maxeval=1e6, statefile=""):
-        self.ndim = len(signature(integrand).parameters)
+        self.ndim = get_ndim(integrand)
         self.ranges = ranges
         # Set things up for scaling integrands
         if self.ranges:
