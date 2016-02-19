@@ -1,0 +1,26 @@
+package:
+  name: cycuba
+  version: 0.1.0
+
+source:
+  git_url: https://github.com/scikit-cycuba/scikit-cycuba.git
+  git_rev: 0.1.1
+
+requirements:
+  build:
+    - python
+    - cython
+    - numpy
+    - cuba
+
+  run:
+    - python
+    - numpy
+    - cuba
+
+test:
+  requires:
+    - pytest
+  imports:
+    - cycuba
+

@@ -1,0 +1,2 @@
+import cycuba
+cycuba.test()

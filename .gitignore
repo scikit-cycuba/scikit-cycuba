@@ -6,3 +6,4 @@ build/
 *.so
 cython_debug/
 __pycache__/
+setup.cfg

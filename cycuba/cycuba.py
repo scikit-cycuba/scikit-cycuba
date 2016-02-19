@@ -24,7 +24,7 @@ ibf_l = 0
 
 
 def get_ndim(integrand):
-    if sys.version_info[0] < 3:
+    if sys.version_info[0] < 3: # Python 2 Compatibility
         if inspect.isfunction(integrand):
             out = len(inspect.getargspec(integrand)[0])
         else:
