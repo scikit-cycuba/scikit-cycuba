@@ -31,7 +31,6 @@ install:
   - source activate test-environment
   - export CFLAGS="-I$HOME/miniconda/envs/test-environment/include"
   - python setup.py install
-  - conda build conda-recipe
 
 script:
   py.test
