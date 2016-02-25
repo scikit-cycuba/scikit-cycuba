@@ -27,10 +27,11 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment -c woodscn python=$TRAVIS_PYTHON_VERSION cython numpy cuba 
-  - source activate test-environment
-  - export CFLAGS="-I$HOME/miniconda/envs/test-environment/include"$
-  - python setup.py install
+  # - conda create -q -n test-environment -c woodscn python=$TRAVIS_PYTHON_VERSION cython numpy cuba 
+  # - source activate test-environment
+  # - export CFLAGS="-I$HOME/miniconda/envs/test-environment/include"$
+  # - python setup.py install
+  - conda build conda-recipe
 
 script:
   py.test
