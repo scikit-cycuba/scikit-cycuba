@@ -159,7 +159,7 @@ class CyCubaIntegration(object):
             else:
                 warn(
                     "Accuracy goal not achieved! " + linesep +
-                    "Approximately "+str(fail)+" additional points" +
+                    "Approximately "+str(self.fail)+" additional points" +
                     " required to reach desired accuracy.", CyCubaWarning)
 
 
