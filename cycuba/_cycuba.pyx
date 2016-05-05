@@ -184,7 +184,6 @@ void (*peakfinder_t)(const int* ndim, const double b[],
     PyMem_Free(integral_c)
     PyMem_Free(error_c)
     PyMem_Free(prob_c)
-    print(fail_c[0])
     out.extend([<object> neval_c[0], <object> fail_c[0], integral, error, prob])
     return out
 
